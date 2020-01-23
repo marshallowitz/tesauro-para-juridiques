@@ -4,27 +4,42 @@ from difflib import get_close_matches
 lexical = json.load(open("JUR.json"))
 
 def tesauro(w):
+    '''Procura pelo termo w ou similares no dicionario lexical e retorna um
+    significado caso encontrado. Se o termo desejado não existir, retorna None.
+    '''
     if w in lexical:
-        return lexical[w]
-    elif w.title() in lexical:
-        return lexical[w.title()]
-    elif w.upper() in lexical: 
-        return lexical[w.upper()]    
-    elif len(get_close_matches(w,lexical.keys())) > 0:
-        answer = input("Você quis dizer %s ? Se sim, aperte S. Caso contrário, aperte N:"%get_close_matches(w,lexical.keys())[0])
-        answer = answer.lower()
-        if answer == "S" or answer == "sim" or answer == "s" or answer == "Sim" or answer == "SIM":
-            return lexical[get_close_matches(w,lexical.keys())[0]]
-        elif answer == "N" or answer == "não" or answer == "n" or answer == "Não" or answer == "NÃO" or answer == "Nao" or answer == "nao":
-            return "Experimente outro termo:"
-        else:
-            return "Ooops... não entendemos se você quis digitar S para sim ou N para não:"
-    else:
-        print ("Este termo ainda não está disponível no Tesauro. Entre em contato com @SofiaMarshallowitz e envie tua sugestão!")
+        return w, lexical[w][0]
+    if w.title() in lexical:
+        return w, lexical[w.title()][0]
+    if w.upper() in lexical:
+        return w, lexical[w.upper()][0]
 
-termo = input("Insira o termo aqui:")
+    close_matches = get_close_matches(w, lexical.keys())
+    while len(close_matches) > 0:
+        print("Você quis dizer algum destes termos?")
+        for i,m in enumerate(close_matches):
+            print(f'  {i+1} - {m}')
+        print(f'  {i+2} - Nenhum destes!')
 
-termo = termo.lower()
+        answer = input('Digite um novo termo para buscar de novo, ou o número da opção desejada (1): ')
+        if answer == '':
+            answer = 1
+        try:
+            answer = int(answer)
+            if answer in range(1, len(close_matches)+1):
+                w = close_matches[answer-1]
+                return w, lexical[close_matches[int(answer)-1]][0]
+            elif answer == len(close_matches)+1:
+                break
+        except:
+            w = answer.lower()
+            close_matches = get_close_matches(w, lexical.keys())
+    return None
 
-print(tesauro(termo))
+termo = input("Insira o termo aqui: ").lower()
+
 output = tesauro(termo)
+if output is None:
+    print("Este termo ainda não está disponível no Tesauro. Entre em contato com @SofiaMarshallowitz e envie tua sugestão!")
+else:
+    print(output[0], '-', output[1])
